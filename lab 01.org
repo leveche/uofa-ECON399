@@ -1,0 +1,191 @@
+#+STARTUP: indent
+#+OPTIONS: toc:nil num:nil
+#+TITLE: ECON 399 Lab 1
+#+LaTeX_CLASS_OPTIONS: [article,letterpaper,times,10pt,margin=0.7in]
+#+LATEX_HEADER: \usepackage[margin=0.7in]{geometry}
+#+AUTHOR: %%AUTHOR%%
+
+#+DATE: due: September 30^{th}, 2021
+#+LaTeX_HEADER: \usepackage{lastpage}
+#+LATEX_HEADER: \usepackage{fancyhdr}
+#+LATEX_HEADER: \usepackage{amsmath}
+#+LATEX_HEADER: \usepackage{bbm}
+#+LATEX_HEADER: \pagestyle{fancy}
+#+LATEX_HEADER: \chead{%%AUTHOR%%}
+#+LATEX_HEADER: \lhead{total pages: \pageref{LastPage}}
+#+LATEX_HEADER: \rhead{this is page \thepage}
+#+LATEX_HEADER: \lfoot{}
+#+LATEX_HEADER: \cfoot{ECON 399 Fall 2021}
+#+LATEX_HEADER: \rfoot{}
+#+LATEX: \renewcommand{\footrulewidth}{0.4pt}
+
+#+LATEX: \linespread{1.5}
+
+
+* Q1, 2, 3, 4
+
+The table below shows the summary of the scaled variables. The list of commands
+used to read in the raw files, process and save as =stata= file is attach in the
+appendix.
+
+#+begin_example
+. use "lab 01 scaled"
+
+. summarize
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+          yr |         37        1994    10.82436       1976       2012
+         pop |         37    2.88e+07     3398278   2.34e+07   3.47e+07
+       immig |         37     48169.7       15363   21084.75    70170.5
+         gdp |         37    85.91554    25.67605     36.475        128
+          ue |         37      8.2942    1.046096        6.9   10.61875
+-------------+---------------------------------------------------------
+     pop_mil |         37     28.8425    3.398279   23.41435   34.66484
+  immig_1000 |         37     48.1697      15.363   21.08475    70.1705
+  gdp_permil |         37    2.916052    .5814096   1.557805    3.69696
+#+end_example
+
+\newpage
+* Q5
+
+There is a strong correlation between population and immigration. This does
+/not/, prima facie, imply that the population growth depends on immigration. For
+one, current population is a stock variable whereas immigration is a flow
+variable. [fn: A year-on-year change in population correlating with immigration
+/could/ show the dependence on immigration for population growth, however.] A
+possible explanation for the correlation would be that the capacity to accept
+new immigrants is higher if the current population is higher.
+
+
+#+begin_example
+. corr pop_mil immig_1000
+(obs=37)
+
+             |  pop_mil imm~1000
+-------------+------------------
+     pop_mil |   1.0000
+  immig_1000 |   0.8549   1.0000
+#+end_example
+
+* Q6
+
+There is a high degree of correlation between immigration and GDP per million.
+An intuitive interpretation is that Canada becomes more attractive as
+immigration destination as its GDP per capita and hence standard of living increases.
+
+#+begin_example
+. corr immig_1000 gdp_permil
+(obs=37)
+
+             | imm~1000 gdp_pe~l
+-------------+------------------
+  immig_1000 |   1.0000
+  gdp_permil |   0.8210   1.0000
+#+end_example
+
+\newpage
+* Q7
+
+The degree of correlation between unemployment and immigration is quite low,
+which means a causal relationship between them is unlikely.
+
+From ANOVA of a simple regression model, we see furthermore that, at up to 9.7%
+signigicance we would fail to reject the null hypothesis of OLS; the t-test shows
+that there there is no evidence that there is a linear relationship between
+=immig= and =ue=.
+
+#+begin_example
+. corr immig_1000 ue
+(obs=37)
+
+             | imm~1000       ue
+-------------+------------------
+  immig_1000 |   1.0000
+          ue |   0.2772   1.0000
+
+. regress immig_1000 ue
+
+      Source |       SS           df       MS      Number of obs   =        37
+-------------+----------------------------------   F(1, 35)        =      2.91
+       Model |  653.001551         1  653.001551   Prob > F        =    0.0967
+    Residual |  7843.78092        35  224.108026   R-squared       =    0.0769
+-------------+----------------------------------   Adj R-squared   =    0.0505
+       Total |  8496.78247        36  236.021735   Root MSE        =     14.97
+
+------------------------------------------------------------------------------
+  immig_1000 |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+          ue |    4.07131   2.385096     1.71   0.097    -.7706913    8.913312
+       _cons |   14.40143   19.93496     0.72   0.475     -26.0687    54.87156
+------------------------------------------------------------------------------
+#+end_example
+
+* Q8
+There is a number of additonal factors that would affect immigration, from some
+expanded measure of attractableness of Canada as a destination (e.g. human
+development index), to policy encouraging or restricing immigration (Canada has
+had a formal scoring of applicants for permanent residency, and the cut-off
+score could serve as a proxy for govenment's willingness to accept new
+migrants.) Another consideration could be political instability in other parts
+of the world, for which we could take several proxy measures such as civil
+protests or politically-motivated violence.
+
+\newpage
+* Appendix
+\small
+#+begin_example
+cd 399-1
+
+infile str7 date str10 dataset str120 desc gdp using gdp_1976_2012.txt, clear
+gen yr = destring (substr(date,1,4)), replace
+gen yr = substr(date,1,4)
+destring yr, replace
+save gdp
+
+infile str7 date str3 dataset str60 desc immig using imm_1976_2012.txt, clear
+gen yr = destring (substr(date,1,4)), replace
+gen yr = substr(date,1,4)
+destring yr, replace
+save immig
+
+infile str7 date str3 dataset str27 desc pop using pop_1976_2012.txt, clear
+gen yr = destring (substr(date,1,4)), replace
+gen yr = substr(date,1,4)
+destring yr, replace
+save pop
+
+infile str7 date str10 dataset str112 desc ue using ue_1976_2012.txt, clear
+gen yr = destring (substr(date,1,4)), replace
+gen yr = substr(date,1,4)
+destring yr, replace
+save ue
+
+clear
+
+use pop
+merge using immig
+drop _merge
+merge using gdp
+drop _merge
+merge using ue
+drop _merge
+drop dataset
+drop desc
+
+save "lab 01"
+
+collapse (mean) pop immig gdp ue, by (yr)
+save "lab 01 by year"
+
+gen pop_mil = mil/1000000
+gen pop_mil = pop/1000000
+gen immig_1000 = immig/1000
+gen gdp_permil = gdp/pop_mil
+save "lab 01 scaled"
+
+corr pop_mil immig_1000
+corr immig_1000 gdp_permil
+corr immig_1000 ue
+regress immig_1000 ue
+#+end_example
