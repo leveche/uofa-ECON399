@@ -1,0 +1,230 @@
+#+STARTUP: indent
+#+OPTIONS: toc:nil num:nil
+#+TITLE: ECON 399 Assignment 2
+#+LaTeX_CLASS_OPTIONS: [article,letterpaper,times,10pt,margin=0.7in]
+#+LATEX_HEADER: \usepackage[margin=0.7in]{geometry}
+#+AUTHOR: Lev Eche
+
+#+DATE: due: October 15^{th}, 2021
+#+LaTeX_HEADER: \usepackage{lastpage}
+#+LATEX_HEADER: \usepackage{fancyhdr}
+#+LATEX_HEADER: \usepackage{amsmath}
+#+LATEX_HEADER: \usepackage{bbm}
+#+LATEX_HEADER: \pagestyle{fancy}
+#+LATEX_HEADER: \chead{Lev Eche}
+#+LATEX_HEADER: \lhead{total pages: \pageref{LastPage}}
+#+LATEX_HEADER: \rhead{this is page \thepage}
+#+LATEX_HEADER: \lfoot{}
+#+LATEX_HEADER: \cfoot{ECON 399 Fall 2021}
+#+LATEX_HEADER: \rfoot{}
+#+LATEX: \renewcommand{\footrulewidth}{0.4pt}
+
+#+LATEX: \linespread{1.5}
+
+* Q1
+- heteroskedasticity does *not* introduce a bias into the OLS estimators.
+  Recalling derivation in Assignment 1, question 2, we see that
+  we only used MLR1--MLR4 in the proof of unbiasedness.
+- omitting a regressor *can* introduce a bias, if that regressor is correlated with some of the variables in the truncated model.
+- if all the correlated variables are included in the model, the OLS estimators will be *unbiased*.
+  One must, however, be wary of ill-conditioning caused by perfect multicollinearity.
+
+* Q2
+Suppose the `true' model is $y = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + u$, and $x_i$ are correlated as
+$x_2 = a + b x_1 + v$, so that the truncated model, omitting $x_2$, becomes
+\[ y = (\beta_0 + a\beta_2) + (\beta_1 + b\beta_2) x_1 + (u + \beta_2(a+v)) \]
+Then the bias of the OLS estimator of the truncated model is $\mathbbm{E}[\tilde\beta_1 - \beta_1] = b\beta_2$.
+Clearly, if $b<0$, and we intuitively expect that $\beta_2>0$, so that the bias of the truncated model will /underestimate/ the true value of $\beta_1$
+
+* Q3
+- Intuitively, we expect $\beta_1 < 0$: NOX is a measure of air pollution, which is undesirable and will tend to lower property prices, ceterus paribus. On the other hand, $\beta_2 >0$; living space (proxied by number of rooms) can be thought as a normal good, where more is better. $\beta_1$ gives the expected price elasticity of NOX concentration. $\beta_2$ gives the expected (multiplicative) increase in price for every additional room.
+- Precisely because we expect excess NOX to depress the price of every room in the house, and because a normal good such as rooms in a house has diminishing marginal utility, we reason that, for a given budget level, the tangent point of (rooms, other goods) bundle will be achieved at a smaller number of rooms.
+  In terms of Q2, we have $b<0, beta_2>0$, so that the bias of the truncated model is downward.
+- $\tilde \beta_1$ of the truncated model is more negative, i.e. lower than that of a model including $rooms$, in accord with reasoning above. We also see that the coefficient of determination increased[fn::although we should really be comparing adjusted-$R^2$ for models of differing dimensions] but is still well below 1. There can, therefore, be another regressor not included in either model, omitting which had caused a /positive/ bias, so that the true elasticity could still be closer to -1.043 than -0.718.
+
+* Q4
+From the output, observe that the coefficient on the residual of the partial model, 0.092029, matches the coefficient of /educ/ in the full model.
+#+begin_example
+. regress educ exper tenure
+
+      Source |       SS           df       MS      Number of obs   =       526
+-------------+----------------------------------   F(2, 523)       =     29.49
+       Model |  407.946311         2  203.973156   Prob > F        =    0.0000
+    Residual |  3617.48335       523  6.91679416   R-squared       =    0.1013
+-------------+----------------------------------   Adj R-squared   =    0.0979
+       Total |  4025.42966       525  7.66748506   Root MSE        =      2.63
+
+------------------------------------------------------------------------------
+        educ |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+       exper |  -.0737851   .0097609    -7.56   0.000    -.0929604   -.0546098
+      tenure |   .0476795   .0183371     2.60   0.010      .011656    .0837031
+       _cons |   13.57496   .1843245    73.65   0.000     13.21286    13.93707
+------------------------------------------------------------------------------
+
+. predict resid_educ, residuals
+
+. regress lwage resid_educ
+
+      Source |       SS           df       MS      Number of obs   =       526
+-------------+----------------------------------   F(1, 524)       =    136.41
+       Model |  30.6376773         1  30.6376773   Prob > F        =    0.0000
+    Residual |  117.692074       524  .224603195   R-squared       =    0.2066
+-------------+----------------------------------   Adj R-squared   =    0.2050
+       Total |  148.329751       525   .28253286   Root MSE        =    .47392
+
+------------------------------------------------------------------------------
+       lwage |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+  resid_educ |    .092029   .0078796    11.68   0.000     .0765495    .1075085
+       _cons |   1.623268    .020664    78.56   0.000     1.582674    1.663863
+------------------------------------------------------------------------------
+
+. regress lwage educ exper tenure
+
+      Source |       SS           df       MS      Number of obs   =       526
+-------------+----------------------------------   F(3, 522)       =     80.39
+       Model |  46.8741776         3  15.6247259   Prob > F        =    0.0000
+    Residual |  101.455574       522  .194359337   R-squared       =    0.3160
+-------------+----------------------------------   Adj R-squared   =    0.3121
+       Total |  148.329751       525   .28253286   Root MSE        =    .44086
+
+------------------------------------------------------------------------------
+       lwage |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+        educ |    .092029   .0073299    12.56   0.000     .0776292    .1064288
+       exper |   .0041211   .0017233     2.39   0.017     .0007357    .0075065
+      tenure |   .0220672   .0030936     7.13   0.000     .0159897    .0281448
+       _cons |   .2843595   .1041904     2.73   0.007     .0796756    .4890435
+------------------------------------------------------------------------------
+#+end_example
+
+
+
+* Q5
+- sample size = 408, $R^2 = 0.1799, \hat\beta_0 = -20.36, \hat\beta_1 = 6.23, \hat\beta_2 = -0.3045$
+  $\hat\beta_1>0$ conforms with intuition, student success correlates positively with per-student expenditure.
+
+#+begin_example
+. regress math10 lexpend lnchprg
+
+      Source |       SS           df       MS      Number of obs   =       408
+-------------+----------------------------------   F(2, 405)       =     44.43
+       Model |  8063.82429         2  4031.91215   Prob > F        =    0.0000
+    Residual |  36753.3562       405  90.7490276   R-squared       =    0.1799
+-------------+----------------------------------   Adj R-squared   =    0.1759
+       Total |  44817.1805       407  110.115923   Root MSE        =    9.5262
+
+------------------------------------------------------------------------------
+      math10 |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+     lexpend |    6.22969   2.972634     2.10   0.037     .3859705    12.07341
+     lnchprg |  -.3045853   .0353574    -8.61   0.000    -.3740923   -.2350783
+       _cons |  -20.36075   25.07288    -0.81   0.417    -69.64998    28.92848
+------------------------------------------------------------------------------
+#+end_example
+
+- The intercept being negative is clearly an indication that the model is not valid for very low values of the regressors. In particular,
+  the expenditure would have to be 1 dollar, much smaller than the minimum of $3332 of the sample. Also note that the log-scale introduces artefact of negative values of $lexpend$ for $0<expend<1$
+- The estimated slope of the simple regression is much higher than that of the two-variable regression, making the infuence of spending
+  much *larger*.
+- The Pearson correlation coefficient $\rho(lexpend,lnchprg)= -0.1927<0$. This is intuitively plausible; higher school funding in the US correlates positively with local property tax revenue, which in turn correlates positively with parent income. Subsidies under the NSLP luch program, on the other hand, are conditional on low-income.
+
+
+#+begin_example
+. correlate lexpend lnchprg
+(obs=408)
+
+             |  lexpend  lnchprg
+-------------+------------------
+     lexpend |   1.0000
+     lnchprg |  -0.1927   1.0000
+
+. regress lwage exper tenure
+
+      Source |       SS           df       MS      Number of obs   =       526
+-------------+----------------------------------   F(2, 523)       =     32.14
+       Model |  16.2365003         2  8.11825015   Prob > F        =    0.0000
+    Residual |  132.093251       523  .252568358   R-squared       =    0.1095
+-------------+----------------------------------   Adj R-squared   =    0.1061
+       Total |  148.329751       525   .28253286   Root MSE        =    .50256
+
+------------------------------------------------------------------------------
+       lwage |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+       exper |  -.0026693   .0018652    -1.43   0.153    -.0063335    .0009949
+      tenure |   .0264551    .003504     7.55   0.000     .0195714    .0333388
+       _cons |    1.53365   .0352225    43.54   0.000     1.464455    1.602845
+------------------------------------------------------------------------------
+
+. regress lwage educ exper tenure
+
+      Source |       SS           df       MS      Number of obs   =       526
+-------------+----------------------------------   F(3, 522)       =     80.39
+       Model |  46.8741776         3  15.6247259   Prob > F        =    0.0000
+    Residual |  101.455574       522  .194359337   R-squared       =    0.3160
+-------------+----------------------------------   Adj R-squared   =    0.3121
+       Total |  148.329751       525   .28253286   Root MSE        =    .44086
+
+------------------------------------------------------------------------------
+       lwage |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+        educ |    .092029   .0073299    12.56   0.000     .0776292    .1064288
+       exper |   .0041211   .0017233     2.39   0.017     .0007357    .0075065
+      tenure |   .0220672   .0030936     7.13   0.000     .0159897    .0281448
+       _cons |   .2843595   .1041904     2.73   0.007     .0796756    .4890435
+------------------------------------------------------------------------------
+
+
+
+#+end_example
+
+
+* Q6
+
+No student received the perfect score, in fact the highest score was 98.44.
+#+begin_example
+. summarize score
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+       score |        856    72.59981    13.40068      19.53      98.44
+
+. list score if score > 99
+#+end_example
+
+ACT scores for math and English are similar, with English being somewhat lower on average, and having a lower maximum.
+#+begin_example
+. summarize actmth acteng
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+      actmth |        814     23.2113    3.773354         12         36
+      acteng |        814    22.59459    3.788735         12         34
+#+end_example
+
+Regression results are given in the output below. Note the low value of $t-statistic$ for the coefficient
+of /acteng/. In fact, there is insufficent evidence in the sample, at 35% confidence, that the score in ACT English has any effect on the
+score in the course. Score in ACT Math, on the other hand, is a strong predictor.
+The coefficient of determination $R^2=0.3972$, not particularly large but enough to say that the regressors in the model
+explain at least some of the behavior of the regressand.
+#+begin_example
+. regress score colgpa actmth acteng
+
+      Source |       SS           df       MS      Number of obs   =       814
+-------------+----------------------------------   F(3, 810)       =    177.94
+       Model |  57165.5698         3  19055.1899   Prob > F        =    0.0000
+    Residual |  86743.1975       810  107.090367   R-squared       =    0.3972
+-------------+----------------------------------   Adj R-squared   =    0.3950
+       Total |  143908.767       813  177.009554   Root MSE        =    10.348
+
+------------------------------------------------------------------------------
+       score |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+      colgpa |    12.3662   .7150624    17.29   0.000     10.96261    13.76979
+      actmth |   .8833519   .1121984     7.87   0.000      .663118    1.103586
+      acteng |    .051764   .1110631     0.47   0.641    -.1662415    .2697695
+       _cons |   16.17402   2.800439     5.78   0.000     10.67704    21.67099
+------------------------------------------------------------------------------
+#+end_example
+
