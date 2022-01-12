@@ -2,3 +2,6 @@
 .idea
 *.log
 tmp/
+*.aux
+*.log
+*.tex
