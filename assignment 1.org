@@ -1,0 +1,165 @@
+#+STARTUP: indent
+#+OPTIONS: toc:nil num:nil
+#+TITLE: ECON 399 Assignment 1
+#+LaTeX_CLASS_OPTIONS: [article,letterpaper,times,10pt,margin=0.7in]
+#+LATEX_HEADER: \usepackage[margin=0.7in]{geometry}
+#+AUTHOR: Lev Eche
+
+#+DATE: due: October 1^{st}, 2021
+#+LaTeX_HEADER: \usepackage{lastpage}
+#+LATEX_HEADER: \usepackage{fancyhdr}
+#+LATEX_HEADER: \usepackage{amsmath}
+#+LATEX_HEADER: \usepackage{bbm}
+#+LATEX_HEADER: \pagestyle{fancy}
+#+LATEX_HEADER: \chead{Lev Eche}
+#+LATEX_HEADER: \lhead{total pages: \pageref{LastPage}}
+#+LATEX_HEADER: \rhead{this is page \thepage}
+#+LATEX_HEADER: \lfoot{}
+#+LATEX_HEADER: \cfoot{ECON 399 Fall 2021}
+#+LATEX_HEADER: \rfoot{}
+#+LATEX: \renewcommand{\footrulewidth}{0.4pt}
+
+#+LATEX: \linespread{1.5}
+
+* Q1
+Intuitively, we should treat /study/ and /work/ as *substitutes* rather than
+complements; time allocation for either activity draws from the same limited
+time budget, and in most macroeconomic theories work (time devoted to labor)
+is what supports the leisure (non-work) activities such as study.
+
+We can consider study as an investment in human capital with the goal to improve
+one's wage, which /could/ eventually alter time allocation between work and
+leisure --- so study today could `cause' work in several years --- but if we are
+interested in behaviour on /weekly/ timescale, these activities are substitutes;
+any amount of study during a week is unlikely to alter the wage rate during the
+same week.
+
+For substitutes, it *doesn't* make sense to characterize the allocation decision
+as causal in either direction, a better approach would be to measure
+population's willingness to partially forego wages now in expectation of higher
+wages in the future, which could be viewed as an investment problem similar to
+consumption/saving decision.
+
+* Q2
+
+Recall that the solution of the OLS normal equations is
+\[ \hat\beta_1 = \frac{\sum x_i y_i}{\sum{x_i^2}} = \sum \frac{x_i - \bar x}{\sum x_i^2} y_i \]
+and \[ \hat\beta_0 = \bar y - \hat\beta_1 \bar x \]
+where $\bar x$ and $\bar y$ are the sample means of the regressor and the response variables, resprectively.
+
+Writing $c_i : = \frac{x_i - \bar{x}}{\sum x_i^2}$, we express the expected value of $\beta_1$ as a statistic of $y_i$ is
+
+\[ \mathbbm{E}\hat\beta_1 = \mathbbm{E}\left[\sum c_i y_i\right] = \sum c_i \mathbbm{E}[y_i]
+   = \sum c_i (\beta_0 + \beta_1 x_i + \mathbbm{E}[\epsilon_i]) = \beta_0 \sum c_i + \beta_1 \sum (c_i x_i)
+\]
+
+Since the expectation of the error term vanishes.
+
+But \[ \sum c_i = \frac{\sum x_i - \bar x}{\sum x^2} = \frac{n \bar x -n \bar x}{\sum x^2} = 0 \]
+and \[ \sum x_i c_i = \frac{\sum (x_i^2 - x_i \bar x)}{\sum x_i^2} = \frac{\sum x_i^2 - n {\bar x}^2}{\sum x_i^2} = 1 \]
+
+Thus $\mathbbm{E}[\hat\beta_1] = \beta_1$.
+
+Similarly, \[ \mathbbm{E}[\hat\beta_0] = \mathbbm{E}[\bar y - \hat\beta_1 \bar x] = \mathbbm{E}[\bar y] - \bar x \mathbbm{E}[\hat\beta_1] = \beta_0 + \beta_1 \bar x - \beta_1 \bar x = \beta_0
+\]
+
+Showing that $\hat\beta_0$ is unbiased for $\beta_0$.
+
+* Q3
+We have \[
+\mathbbm{E}[u | inc] = \mathbbm{E}[\sqrt{inc} \ \epsilon]  = \sqrt{inc} \ \mathbbm{E}[\epsilon] = 0 \]
+
+Since $inc$ and $\epsilon$ are assumed *independent* in the model, we are
+treating $inc$ as fixed in the conditional expectation, and thus it becomes a
+multiplicative constant. We have used the assumption that the error term has
+mean zero.
+
+For the variance, we have \[
+\mathbbm{V}[u|inc] = \mathbbm{V}[\sqrt{inc}\, \epsilon | inc] = (\sqrt{inc})^2 \mathbbm{V}[\epsilon] = inc \cdot \sigma^2_\epsilon
+\]
+Again, because $inc$ and $\epsilon$ are independent, we treat $inc$ are constant in the conditional calculation.
+
+This means the model for $sav$ has *heteroscedastic* error term, variance of $sav$ increases with $inc$.
+
+Savings is a stock variable while income is a flow variable; it is perfectly
+possible to find an individual with high income and low savings such as e.g. a
+doctor fresh out of medical school, who has high income but is still paying off
+student debt. On the other hand, the same doctor a few years later would likely
+have accumulated savings and still has high income.
+
+* Q4
+
+We see from dataset summary that the means are
+
+| prate | mrate |
+|-------+-------|
+| 87.58 | 0.735 |
+
+\tiny
+#+begin_example
+. use 401K_small.dta, clear
+. summarize
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+       prate |      1,200    87.58317    16.40521        8.8        100
+       mrate |      1,200      .73535    .7836933        .01       4.66
+     totpart |      1,200    1252.007    4381.861         50      58811
+      totelg |      1,200     1475.59    4977.178         51      70429
+         age |      1,200       13.13    9.131133          4         48
+-------------+---------------------------------------------------------
+      totemp |      1,200    2937.318    9327.473         58     144387
+        sole |      1,200    .4808333    .4998408          0          1
+     ltotemp |      1,200    6.646023    1.385959   4.060443   11.88025
+#+end_example
+
+\normalsize
+
+From the =stata= output below, we see that the sample size is 1200 observations, \\
+$R^2=0.0681$, and $\hat\beta_0 = 83.57, \hat\beta_1 = 5.46$.
+
+The intercept $\beta_0$ is the percentage of eligible workers who participate in
+the plan even when there are *no matching contributions* by the employer. We see
+that the OLS estimate is a quite high fraction of $\hat\beta_0 \approx 85.4\%$
+
+The slope coefficient $\beta_1$ shows *by how much the participation in the plan
+increases for every additional dollar the employer pays in matching contribution*.
+We see that OLS regression estimates this as $\hat\beta_1 \approx 5.5\%$.
+
+\tiny
+#+begin_example
+. regress prate mrate
+
+      Source |       SS           df       MS      Number of obs   =     1,200
+-------------+----------------------------------   F(1, 1198)      =     87.50
+       Model |  21963.7451         1  21963.7451   Prob > F        =    0.0000
+    Residual |  300724.255     1,198  251.021916   R-squared       =    0.0681
+-------------+----------------------------------   Adj R-squared   =    0.0673
+       Total |      322688     1,199  269.130943   Root MSE        =    15.844
+
+------------------------------------------------------------------------------
+       prate |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+       mrate |   5.461318   .5838484     9.35   0.000     4.315839    6.606797
+       _cons |   83.56719   .6273051   133.22   0.000     82.33645    84.79793
+------------------------------------------------------------------------------
+#+end_example
+
+\normalsize We can directly calculate the predicted value: $\hat{prate} =
+83.567 + 5.46 \cdot 3.5 \approx 102.78$. Clearly this is nonsensical since
+greater than 100%. The model is either ill-suited to describe the data, or is
+outside of its region of validity: with a high proportion contributing even
+without matching, and clearly strong positive effect matching has on increasing
+contribution, the prediction exceeds 100% rapidly, so the model should at least
+be qualified to a limited range of /mrate/.
+
+Recall that The $R^2 = \frac{SS_{Residual}}{SS_{Total}} = 0.0681$ shows how much
+of the toal variability can be attributed to the variability of the regressor.
+The value in this example is *abysmally low*, indicating that a linear regression
+is a poor choice of model.
+
+In fact, simply eyeballing the scatterplot confirm this suspicion; there is a
+large amount of variability in /prate/ for any fixed value of /mrate/,
+particularly for low /mrate/.
+
+[[./ass1plot1.png]]
